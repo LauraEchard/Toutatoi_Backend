@@ -1,6 +1,6 @@
 var mongoose = require("mongoose");
 
-//SOUS-DOCUMENTS
+//SOUS-DOCUMENTS PR
 var wordSchema = mongoose.Schema({
   label: String,
   lastTestDate: Date,
@@ -30,13 +30,16 @@ var kidSchema = mongoose.Schema({
     enum: ["CP", "CE1", "CE2", "CM1", "CM2"],
     default: "CP",
   },
-  activatedNotions: activatedNotionSchema,
+  activatedNotions: [activatedNotionSchema],
   customWords: [wordSchema],
   xp: [xpSchema],
   consecutiveDaysNb: Number,
   lastChallengeDate: Date,
   testedChallenges: [
-    { type: mongoose.Schema.Types.ObjectId, ref: "challenges" },
+    {
+      challengeId: { type: mongoose.Schema.Types.ObjectId, ref: "challenges" },
+      lastTestDate: Date,
+    },
   ],
 });
 

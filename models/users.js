@@ -2,7 +2,7 @@ var mongoose = require("mongoose");
 
 var userSchema = mongoose.Schema({
   mail: String,
-  code: Number,
+  code: String,
   codeExpDate: Date,
 });
 
