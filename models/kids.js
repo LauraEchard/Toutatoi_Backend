@@ -1,6 +1,6 @@
 var mongoose = require("mongoose");
 
-//SOUS-DOCUMENTS
+//SOUS-DOCUMENTS PR
 var wordSchema = mongoose.Schema({
   label: String,
   lastTestDate: Date,
@@ -35,10 +35,12 @@ var kidSchema = mongoose.Schema({
   xp: [xpSchema],
   consecutiveDaysNb: Number,
   lastChallengeDate: Date,
-  testedChallenges: [{
-    challengeId: { type: mongoose.Schema.Types.ObjectId, ref: "challenges" },
-    lastTestDate: Date
-}],
+  testedChallenges: [
+    {
+      challengeId: { type: mongoose.Schema.Types.ObjectId, ref: "challenges" },
+      lastTestDate: Date,
+    },
+  ],
 });
 
 module.exports = mongoose.model("kids", kidSchema);
