@@ -11,4 +11,5 @@ mongoose.connect(
     err ? console.log(err) : console.log("connected to the DB !!");
   }
 );
+
 module.exports = mongoose;
