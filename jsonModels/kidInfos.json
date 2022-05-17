@@ -1,0 +1,19 @@
+{
+  "relatedUsers": ["claariss@gmail.com", "tu@gmail.comcom"],
+  "activatedNotions": [
+    {
+      "notionId": "6282276d5680bb4b9b6825aa",
+      "lastTestDate": "September 22, 2018 15:00:00",
+      "average": 70,
+      "testNb": 3
+    }
+  ],
+  "consecutiveDaysNb": 4,
+  "lastChallengeDate": "September 22, 2018 15:00:00",
+  "testedChallenges": [
+    {
+      "challengeId": "628223755680bb4b9b6825a6",
+      "lastTestDate": "September 22, 2018 15:00:00"
+    }
+  ]
+}
