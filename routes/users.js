@@ -10,6 +10,9 @@ var notionModel = require("../models/notions");
 var challengeModel = require("../models/challenges");
 var questionModel = require("../models/questions");
 
+//Durée de validité du code de confirmation permettant au user de se connecter (en minutes)
+var confCodeDuration = 10;
+
 /* GET users listing. */
 router.get("/", function (req, res, next) {
   res.send("respond with a resource");
@@ -52,7 +55,9 @@ router.post("/submitMail", async function (req, res, next) {
         var newUser = new userModel({
           mail: req.body.mailFromFront,
           code: code,
-          codeExpDate: new Date(new Date().getTime() + 10 * 60000),
+          codeExpDate: new Date(
+            new Date().getTime() + confCodeDuration * 60000
+          ),
         });
 
         let saveUser = await newUser.save();
@@ -66,7 +71,9 @@ router.post("/submitMail", async function (req, res, next) {
           { mail: req.body.mailFromFront },
           {
             code: code,
-            codeExpDate: new Date(new Date().getTime() + 10 * 60000),
+            codeExpDate: new Date(
+              new Date().getTime() + confCodeDuration * 60000
+            ),
           }
         );
 
@@ -110,12 +117,17 @@ router.post("/submitConfirmationCode", async function (req, res, next) {
             { id: userId },
             {
               code: uniqid(),
-              codeExpDate: new Date(new Date().getTime() + 10 * 60000),
+              codeExpDate: new Date(
+                new Date().getTime() + confCodeDuration * 60000
+              ),
             }
           );
-
           if (saveUser) {
-            error.push({ code: 4, label: "code expiré" });
+            //AJOUT MAIL A ENVOYER
+            error.push({
+              code: 4,
+              label: "code expiré. Nous vous avons renvoyé un mail",
+            });
           }
         }
       }
@@ -124,6 +136,7 @@ router.post("/submitConfirmationCode", async function (req, res, next) {
   res.json({ result, error, userId, code });
 });
 
+//SUPPRESSION USER - ATTENTION SI LE USER A DES PROFILS ENFANT DONT IL EST L'ADMIN + RELATED
 router.delete("/Account/:userId", async function (req, res, next) {
   let error = [];
   let result = false;
@@ -135,38 +148,6 @@ router.delete("/Account/:userId", async function (req, res, next) {
       result = true;
     }
   }
-  res.json({ result, error });
-});
-
-//AJOUT KID
-router.post("/addKid", async function (req, res, next) {
-  let error = [];
-  let result = false;
-  let userId = "";
-
-  if (!req.body.userId) {
-    error.push({ code: 1, label: "précisez un userId" });
-  }
-  if (!req.body.firstNameFromFront) {
-    error.push({ code: 2, label: "préciez le prénom de l'enfant" });
-  }
-  if (!req.body.grade) {
-    error.push({ code: 3, label: "précisez le niveau scolaire de l'enfant" });
-  }
-  if (error.length == 0) {
-    var newKid = new kidModel({
-      adminUser: req.body.userId,
-      grade: req.body.grade,
-      firstName: req.body.firstNameFromFront,
-    });
-
-    let saveKid = await newKid.save();
-
-    if (saveKid) {
-      result = true;
-    }
-  }
-
   res.json({ result, error });
 });
 
