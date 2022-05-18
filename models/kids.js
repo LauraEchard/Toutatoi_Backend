@@ -20,6 +20,11 @@ var activatedNotionSchema = mongoose.Schema({
   testNb: Number,
 });
 
+var testedChallengeSchema = mongoose.Schema({
+  challengeId: { type: mongoose.Schema.Types.ObjectId, ref: "challenges" },
+  lastTestDate: Date,
+});
+
 //SCHEMA PRINCIPAL
 var kidSchema = mongoose.Schema({
   adminUser: { type: mongoose.Schema.Types.ObjectId, ref: "users" },
@@ -35,12 +40,7 @@ var kidSchema = mongoose.Schema({
   xp: [xpSchema],
   consecutiveDaysNb: Number,
   lastChallengeDate: Date,
-  testedChallenges: [
-    {
-      challengeId: { type: mongoose.Schema.Types.ObjectId, ref: "challenges" },
-      lastTestDate: Date,
-    },
-  ],
+  testedChallenges: [testedChallengeSchema],
 });
 
 module.exports = mongoose.model("kids", kidSchema);
