@@ -107,4 +107,68 @@ router.get("/getKidsByUserId", async function (req, res, next) {
   res.json({ result, error, adminKidList, relatedKidList });
 });
 
+// ROUTE GET ALL NOTIONS FROM BDD
+router.get("/getAllNotionsFromBdd", async function (req, res, next) {
+  let allNotions = await notionModel.find();
+
+  res.json({ allNotions });
+});
+
+//ROUTE PUT KID ACTIVATED NOTIONS
+router.put(
+  "/kidActivatedNotions/:kidIdFromFront",
+  async function (req, res, next) {
+    let error = [];
+    let result = false;
+    let savedKid = {};
+
+    if (!req.params.kidIdFromFront) {
+      error.push({ code: 1, label: "précisez un kidId" });
+    }
+    if (!req.body.newActivatedNotionsFromFront) {
+      error.push({ code: 2, label: "précisez une liste de notion" });
+    }
+
+    let finalNotions = [];
+
+    if (error.length == 0) {
+      let newNotionsList = JSON.parse(req.body.newActivatedNotionsFromFront);
+      let kid = await kidModel
+        .findById(req.params.kidIdFromFront)
+        .populate("testedChallenges.challengeId")
+        .populate("activatedNotions.notionId")
+        .exec();
+
+      if (!kid) {
+        error.push({
+          code: 4,
+          label: "il n'existe pas de kid avec l'id" + req.body.kidIdFromFront,
+        });
+      } else {
+        let tableau = [];
+        for (let element of newNotionsList) {
+          let kidnotion = kid.activatedNotions.find(
+            (e) => e.notionId.id == element.notionId
+          );
+          if (kidnotion) {
+            tableau.push(kidnotion);
+          } else {
+            tableau.push(element);
+          }
+        }
+
+        kid.activatedNotions = tableau;
+      }
+
+      //Mise à jour de la bdd
+      savedKid = await kid.save();
+      if (savedKid) {
+        result = true;
+      }
+    }
+
+    res.json({ result, error, savedKid });
+  }
+);
+
 module.exports = router;

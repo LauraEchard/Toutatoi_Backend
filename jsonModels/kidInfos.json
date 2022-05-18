@@ -6,6 +6,12 @@
       "lastTestDate": "September 22, 2018 15:00:00",
       "average": 70,
       "testNb": 3
+    },
+    {
+      "notionId": "6282286d5680bb4b9b6825ac",
+      "lastTestDate": "Augut 25, 2020 15:00:00",
+      "average": 50,
+      "testNb": 10
     }
   ],
   "consecutiveDaysNb": 4,
@@ -17,3 +23,9 @@
     }
   ]
 }
+
+
+[ 
+  {
+  "notionId": "628228d35680bb4b9b6825b0"
+}, {"notionId":"6282276d5680bb4b9b6825aa"}]
