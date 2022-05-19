@@ -92,4 +92,7 @@ router.get("/getChallengeOfTheDay", async function (req, res, next) {
   res.json({ challenge: finalChallenge, questions: finalQuestions });
 });
 
+// ROUTE getAllNotions
+router.get("/getChallengeOfTheDay", async function (req, res, next) {});
+
 module.exports = router;
