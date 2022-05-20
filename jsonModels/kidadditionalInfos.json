@@ -1,0 +1,23 @@
+//Structure de la propriété additionalInfos du body de la route POST addKid
+{
+  "relatedUsers": ["claariss@gmail.com", "tu@gmail.comcom"],
+  "activatedNotions": [
+    {
+      "notionId": "6282289b5680bb4b9b6825ae",
+      "lastTestDate": "September 22, 2018 15:00:00",
+      "average": 70,
+      "testNb": 3
+    },
+    {
+      "notionId": "628228c05680bb4b9b6825af",
+      "lastTestDate": "Augut 25, 2020 15:00:00",
+      "average": 50,
+      "testNb": 10
+    },
+    {
+      "notionId": "62822a255680bb4b9b6825ba"
+    }
+  ],
+  "consecutiveDaysNb": 4,
+  "lastChallengeDate": "September 22, 2018 15:00:00"
+}
