@@ -93,7 +93,7 @@ router.post("/submitConfirmationCode", async function (req, res, next) {
   let error = [];
   let result = false;
   let userId = "";
-  let code = "";
+  let newCode = "";
 
   if (!req.body.userIdFromFront || !req.body.confCodeFromFront) {
     error.push({ code: 1, label: "précisez les propriétés front" });
@@ -128,12 +128,13 @@ router.post("/submitConfirmationCode", async function (req, res, next) {
               code: 4,
               label: "code expiré. Nous vous avons renvoyé un mail",
             });
+            newCode = saveUser.code;
           }
         }
       }
     }
   }
-  res.json({ result, error, userId, code });
+  res.json({ result, error, userId, newCode });
 });
 
 //SUPPRESSION USER - ATTENTION SI LE USER A DES PROFILS ENFANT DONT IL EST L'ADMIN + RELATED
