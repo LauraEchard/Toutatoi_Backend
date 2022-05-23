@@ -49,6 +49,28 @@ router.post("/addKid", async function (req, res, next) {
   res.json({ result, error, kidId });
 });
 
+//GET KID BY ID
+router.get("/byID/:kidIdFromFront", async function (req, res, next) {
+  let error = [];
+  let result = false;
+
+  console.log("test2", req.params);
+
+  if (!req.params.kidIdFromFront) {
+    error.push({ code: 1, label: "précisez un kidId" });
+  }
+
+  let kid = await kidModel.findById(req.params.kidIdFromFront);
+
+  if (!kid) {
+    error.push({ code: 2, label: "le kid n'existe pas" });
+  } else {
+    result = true;
+  }
+
+  res.json({ result, error, kid });
+});
+
 //SUPPRESSION KID
 router.delete("/deleteKid/:kidIdFromFront", async function (req, res, next) {
   let error = [];
@@ -71,6 +93,8 @@ router.get("/getKidsByUserId", async function (req, res, next) {
   let userMail = "";
   let adminKidList = [];
   let relatedKidList = [];
+
+  console.log("test", req.query);
 
   if (!req.query.userIdFromFront) {
     error.push({ code: 1, label: "précisez un userId" });
@@ -112,28 +136,6 @@ router.get("/getAllNotionsFromBdd", async function (req, res, next) {
   let allNotions = await notionModel.find();
 
   res.json({ allNotions });
-});
-
-//GET KID ACTIVATED NOTIONS BY KID ID
-router.get("/getKidActivatedNotions", async function (req, res, next) {
-  let error = [];
-  let result = false;
-  let kidActivatedNotions = [];
-
-  if (!req.query.kidIdFromFront) {
-    error.push({ code: 1, label: "précisez un kidId" });
-  }
-
-  let kid = await kidModel.findById(req.query.kidIdFromFront);
-
-  if (!kid) {
-    error.push({ code: 2, label: "le kid n'existe pas" });
-  } else {
-    kidActivatedNotions = kid.activatedNotions;
-    result = true;
-  }
-
-  res.json({ result, error, kidActivatedNotions });
 });
 
 //ROUTE PUT KID ACTIVATED NOTIONS
