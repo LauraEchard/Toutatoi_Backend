@@ -49,7 +49,7 @@ router.post("/addKid", async function (req, res, next) {
   res.json({ result, error, kidId });
 });
 
-//GET KID
+//GET KID BY ID
 router.get("/byID/:kidIdFromFront", async function (req, res, next) {
   let error = [];
   let result = false;
@@ -136,28 +136,6 @@ router.get("/getAllNotionsFromBdd", async function (req, res, next) {
   let allNotions = await notionModel.find();
 
   res.json({ allNotions });
-});
-
-//GET KID ACTIVATED NOTIONS BY KID ID
-router.get("/getKidActivatedNotions", async function (req, res, next) {
-  let error = [];
-  let result = false;
-  let kidActivatedNotions = [];
-
-  if (!req.query.kidIdFromFront) {
-    error.push({ code: 1, label: "précisez un kidId" });
-  }
-
-  let kid = await kidModel.findById(req.query.kidIdFromFront);
-
-  if (!kid) {
-    error.push({ code: 2, label: "le kid n'existe pas" });
-  } else {
-    kidActivatedNotions = kid.activatedNotions;
-    result = true;
-  }
-
-  res.json({ result, error, kidActivatedNotions });
 });
 
 //ROUTE PUT KID ACTIVATED NOTIONS
