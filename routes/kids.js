@@ -193,4 +193,23 @@ router.put(
   }
 );
 
+router.get("/byId/:kidIdFromFront", async function (req, res, next) {
+  let error = [];
+  let result = false;
+
+  if (!req.params.kidIdFromFront) {
+    error.push({ code: 1, label: "précisez un kidId" });
+  }
+
+  let kid = await kidModel.findById(req.params.kidIdFromFront);
+
+  if (!kid) {
+    error.push({ code: 2, label: "le kid n'existe pas" });
+  } else {
+    result = true;
+  }
+
+  res.json({ result, error, kid });
+});
+
 module.exports = router;
