@@ -152,4 +152,28 @@ router.delete("/Account/:userId", async function (req, res, next) {
   res.json({ result, error });
 });
 
+//GET USER BY CODE
+router.get("/getUserByCode", async function (req, res, next) {
+  let error = [];
+  let result = false;
+  let userId = "";
+
+  if (!req.query.codeFromFront) {
+    error.push({ code: 1, label: "pas de code de vérification" });
+  }
+  var user = await userModel.find({ code: req.query.codeFromFront });
+
+  if (!user) {
+    error.push({
+      code: 2,
+      label: "aucun utilisateur ne correspond au code de vérification",
+    });
+  } else {
+    userId = user[0]._id;
+    result = true;
+  }
+
+  res.json({ result, userId, error });
+});
+
 module.exports = router;
