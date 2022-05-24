@@ -195,6 +195,48 @@ router.put(
   }
 );
 
+//ROUTE PUT KID GRADE
+router.put("/KidGrade/:kidIdFromFront", async function (req, res, next) {
+  let error = [];
+  let result = false;
+  let savedKid = {};
+
+  if (!req.params.kidIdFromFront) {
+    error.push({ code: 1, label: "précisez un kidId" });
+  }
+  if (!req.body.newKidGradeFromFront) {
+    error.push({ code: 2, label: "précisez une classe pour l'enfant" });
+  }
+
+  let finalNotions = [];
+
+  if (error.length == 0) {
+    let kid = await kidModel
+      .findById(req.params.kidIdFromFront)
+      .populate("testedChallenges.challengeId")
+      .populate("activatedNotions.notionId")
+      .exec();
+
+    if (!kid) {
+      error.push({
+        code: 4,
+        label: "il n'existe pas de kid avec l'id" + req.body.kidIdFromFront,
+      });
+    } else {
+      kid.grade = req.body.newKidGradeFromFront;
+    }
+
+    //Mise à jour de la bdd
+    savedKid = await kid.save();
+    if (savedKid) {
+      result = true;
+    }
+  }
+
+  res.json({ result, error, savedKid });
+});
+
+//ROUTE GET KID BY ID
 router.get("/byId/:kidIdFromFront", async function (req, res, next) {
   let error = [];
   let result = false;
