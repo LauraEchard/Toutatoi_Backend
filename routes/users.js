@@ -163,7 +163,7 @@ router.get("/getUserByCode", async function (req, res, next) {
   }
   var user = await userModel.find({ code: req.query.codeFromFront });
 
-  if (!user) {
+  if (user.length == 0) {
     error.push({
       code: 2,
       label: "aucun utilisateur ne correspond au code de vérification",
