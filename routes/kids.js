@@ -54,8 +54,6 @@ router.get("/byID/:kidIdFromFront", async function (req, res, next) {
   let error = [];
   let result = false;
 
-  console.log("test2", req.params);
-
   if (!req.params.kidIdFromFront) {
     error.push({ code: 1, label: "précisez un kidId" });
   }
@@ -166,7 +164,7 @@ router.put(
       if (!kid) {
         error.push({
           code: 4,
-          label: "il n'existe pas de kid avec l'id" + req.body.kidIdFromFront,
+          label: "il n'existe pas de kid avec l'id" + req.params.kidIdFromFront,
         });
       } else {
         let tableau = [];
@@ -236,24 +234,88 @@ router.put("/KidGrade/:kidIdFromFront", async function (req, res, next) {
   res.json({ result, error, savedKid });
 });
 
-//ROUTE GET KID BY ID
-router.get("/byId/:kidIdFromFront", async function (req, res, next) {
-  let error = [];
-  let result = false;
+// ADD KID CUSTOM WORD
+router.put(
+  "/addKidCustomWord/:kidIdFromFront",
+  async function (req, res, next) {
+    let error = [];
+    let result = false;
+    let savedKid = {};
 
-  if (!req.params.kidIdFromFront) {
-    error.push({ code: 1, label: "précisez un kidId" });
+    if (!req.params.kidIdFromFront) {
+      error.push({ code: 1, label: "précisez un kidId" });
+    }
+    if (!req.body.newCustomWordFromFront) {
+      error.push({ code: 2, label: "précisez un mot à ajouter" });
+    }
+
+    if (error.length == 0) {
+      let newWord = req.body.newCustomWordFromFront;
+      let kid = await kidModel.findById(req.params.kidIdFromFront);
+
+      if (!kid) {
+        error.push({
+          code: 4,
+          label: "il n'existe pas de kid avec l'id" + req.params.kidIdFromFront,
+        });
+      } else {
+        let finalWordsList = kid.customWords;
+        finalWordsList.push({ label: newWord });
+        kid.customWords = finalWordsList;
+      }
+
+      //Mise à jour de la bdd
+      savedKid = await kid.save();
+      if (savedKid) {
+        result = true;
+      }
+    }
+
+    res.json({ result, error, savedKid });
   }
+);
 
-  let kid = await kidModel.findById(req.params.kidIdFromFront);
+// DELETE KID CUSTOM WORD
+router.delete(
+  "/deleteKidCustomWord/:kidIdFromFront",
+  async function (req, res, next) {
+    let error = [];
+    let result = false;
+    let savedKid = {};
 
-  if (!kid) {
-    error.push({ code: 2, label: "le kid n'existe pas" });
-  } else {
-    result = true;
+    if (!req.params.kidIdFromFront) {
+      error.push({ code: 1, label: "précisez un kidId" });
+    }
+    if (!req.body.customWordToDeleteFromFront) {
+      error.push({ code: 2, label: "précisez un mot à supprimer" });
+    }
+
+    if (error.length == 0) {
+      let wordToDelete = req.body.customWordToDeleteFromFront;
+      let kid = await kidModel.findById(req.params.kidIdFromFront);
+
+      if (!kid) {
+        error.push({
+          code: 4,
+          label: "il n'existe pas de kid avec l'id" + req.params.kidIdFromFront,
+        });
+      } else {
+        let currentWordsList = kid.customWords;
+        let finalWordsList = currentWordsList.filter(
+          (e) => e.label != wordToDelete
+        );
+        kid.customWords = finalWordsList;
+      }
+
+      //Mise à jour de la bdd
+      savedKid = await kid.save();
+      if (savedKid) {
+        result = true;
+      }
+    }
+
+    res.json({ result, error, savedKid });
   }
-
-  res.json({ result, error, kid });
-});
+);
 
 module.exports = router;

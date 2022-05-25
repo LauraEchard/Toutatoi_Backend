@@ -108,7 +108,7 @@ router.post("/submitConfirmationCode", async function (req, res, next) {
       error.push({ code: 2, label: "l'utilisateur n'existe pas" });
     } else {
       if (user.code != code) {
-        error.push({ code: 3, label: "les données ne matchent pas" });
+        error.push({ code: 3, label: "Le code est incorrect" });
       } else {
         if (new Date() <= user.codeExpDate) {
           result = true;
@@ -126,7 +126,7 @@ router.post("/submitConfirmationCode", async function (req, res, next) {
             //AJOUT MAIL A ENVOYER
             error.push({
               code: 4,
-              label: "code expiré. Nous vous avons renvoyé un mail",
+              label: "Code expiré. Nous vous avons renvoyé un mail",
             });
             newCode = saveUser.code;
           }
