@@ -91,6 +91,7 @@ router.get("/getKidsByUserId", async function (req, res, next) {
   let userMail = "";
   let adminKidList = [];
   let relatedKidList = [];
+  let kidListToReturn = [];
 
   console.log("test", req.query);
 
@@ -118,15 +119,66 @@ router.get("/getKidsByUserId", async function (req, res, next) {
         (e) => e.adminUser.id == req.query.userIdFromFront
       );
 
+      adminKidList = adminKidList.map((item, i) => {
+        console.log("liste non triée", item.customWords);
+        let sortedCustomWords = item.customWords.sort(function (a, b) {
+          return a.label - b.label;
+        });
+        console.log("liste triée ", i, sortedCustomWords);
+        let ob = {
+          kidId: item.id,
+          isRelated: false,
+          kidFirstName: item.firstName,
+          grade: item.grade,
+          activatedNotions: item.activatedNotions,
+          customWords: item.customWords.sort((a, b) => {
+            if (a.label.toLowerCase() < b.label.toLowerCase()) {
+              return -1;
+            }
+            if (a.label.toLowerCase() > b.label.toLowerCase()) {
+              return 1;
+            }
+            return 0;
+          }),
+          relatedUsers: item.relatedUsers,
+          xp: item.xp,
+          consecutiveDaysNb: item.consecutiveDaysNb,
+        };
+        return ob;
+      });
+
       relatedKidList = kidList.filter((e) =>
         e.relatedUsers.find((i) => i == userMail)
       );
 
+      relatedKidList = relatedKidList.map((item, i) => {
+        let ob = {
+          kidId: item.id,
+          isRelated: true,
+          kidFirstName: item.firstName,
+          grade: item.grade,
+          activatedNotions: item.activatedNotions,
+          customWords: item.customWords.sort((a, b) => {
+            if (a.label.toLowerCase() < b.label.toLowerCase()) {
+              return -1;
+            }
+            if (a.label.toLowerCase() > b.label.toLowerCase()) {
+              return 1;
+            }
+            return 0;
+          }),
+          xp: item.xp,
+          consecutiveDaysNb: item.consecutiveDaysNb,
+        };
+        return ob;
+      });
+
+      kidListToReturn = [...adminKidList, ...relatedKidList];
       result = true;
     }
   }
 
-  res.json({ result, error, adminKidList, relatedKidList });
+  res.json({ result, error, kidListToReturn });
 });
 
 // ROUTE GET ALL NOTIONS FROM BDD
@@ -317,5 +369,49 @@ router.delete(
     res.json({ result, error, savedKid });
   }
 );
+
+//ROUTE PUT KID RELATED USERS
+router.put("/KidRelatedUsers/:kidIdFromFront", async function (req, res, next) {
+  let error = [];
+  let result = false;
+  let savedKid = {};
+
+  if (!req.params.kidIdFromFront) {
+    error.push({ code: 1, label: "précisez un kidId" });
+  }
+  if (!req.body.newKidRelatedFromFront) {
+    error.push({ code: 2, label: "précisez une liste de mails" });
+  }
+
+  if (error.length == 0) {
+    let kid = await kidModel
+      .findById(req.params.kidIdFromFront)
+      .populate("testedChallenges.challengeId")
+      .populate("activatedNotions.notionId")
+      .exec();
+
+    if (!kid) {
+      error.push({
+        code: 4,
+        label: "il n'existe pas de kid avec l'id" + req.body.kidIdFromFront,
+      });
+    } else {
+      console.log(
+        "liste à mettre à jour ",
+        JSON.parse(req.body.newKidRelatedFromFront)
+      );
+      kid.relatedUsers = JSON.parse(req.body.newKidRelatedFromFront);
+    }
+
+    //Mise à jour de la bdd
+    savedKid = await kid.save();
+    if (savedKid) {
+      result = true;
+      console.log(savedKid);
+    }
+  }
+
+  res.json({ result, error, savedKid });
+});
 
 module.exports = router;
