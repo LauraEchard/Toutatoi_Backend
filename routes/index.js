@@ -8,6 +8,7 @@ var notionModel = require("../models/notions");
 var challengeModel = require("../models/challenges");
 var questionModel = require("../models/questions");
 const x = require("uniqid");
+const questions = require("../models/questions");
 
 /* GET home page. */
 router.get("/", function (req, res, next) {
@@ -90,6 +91,16 @@ router.get("/getChallengeOfTheDay", async function (req, res, next) {
     }
     for (var i = 0; i < finalChallengeQuestions.length; i++) {
       availableQuestions.push(finalChallengeQuestions[i]);
+    }
+
+    //Etape 3 : ajout des éventuels questions de vocabulaire
+    if (kid.customWords.length > 0) {
+      for (let word of kid.customWords) {
+        availableQuestions.push({
+          questionLabel: `comment écris-tu ${word.label}?`,
+          wordId: word.id,
+        });
+      }
     }
 
     console.log("availableQuestions =>", availableQuestions.length);
@@ -199,28 +210,30 @@ router.post("/resultsOfTheDay", async function (req, res) {
         kid.xp.push({ date: newdate, xpNb: count });
       }
 
-      //5.Mise à jour de la prop kid.activatedNotions
+      //5.Mise à jour de la prop kid.activatedNotions et customWords
       for (let element of resultList) {
-        let question = await questionModel
-          .findById(element.questionId)
-          .populate("notionId")
-          .exec();
+        if (element.questionId.charAt(0) != "_") {
+          //On est dans le cas d'une notion
+          let question = await questionModel
+            .findById(element.questionId)
+            .populate("notionId")
+            .exec();
 
-        console.log("notion de la question ", question.notionId.id);
-        console.log(kid.activatedNotions[0].notionId.id);
+          console.log("notion de la question ", question.notionId.id);
+          console.log(kid.activatedNotions[0].notionId.id);
 
-        let activatedNotion = kid.activatedNotions.find(
-          (e) => e.notionId.id == question.notionId.id
-        );
+          let activatedNotion = kid.activatedNotions.find(
+            (e) => e.notionId.id == question.notionId.id
+          );
 
-        if (!activatedNotion) {
-          error.push({
-            code: 5,
-            label: "pas de notion activée pour cette question",
-          });
-        } else {
-          activatedNotion.lastTestDate = newdate;
-
+          if (!activatedNotion) {
+            error.push({
+              code: 5,
+              label: "pas de notion activée pour cette question",
+            });
+          } else {
+            activatedNotion.lastTestDate = newdate;
+          }
           if (activatedNotion.testNb) {
             activatedNotion.average =
               (activatedNotion.average * activatedNotion.testNb +
@@ -232,9 +245,32 @@ router.post("/resultsOfTheDay", async function (req, res) {
             activatedNotion.testNb = 1;
           }
         }
-      }
 
-      //6.Mise à jour de la prop kid.customWords
+        //On est dans le cas d'un customWord
+        else {
+          let wordId = element.questionId.slice(1);
+          console.log("wordId ", wordId);
+          let customWord = kid.customWords.find((e) => e.id == wordId);
+
+          if (!customWord) {
+            error.push({
+              code: 6,
+              label: "pas de mot enregistré pour cette question",
+            });
+          } else {
+            customWord.lastTestDate = newdate;
+          }
+          if (customWord.testNb) {
+            customWord.average =
+              (customWord.average * customWord.testNb + element.result) /
+              (customWord.testNb + 1);
+            customWord.testNb++;
+          } else {
+            customWord.average = element.result;
+            customWord.testNb = 1;
+          }
+        }
+      }
 
       savedKid = await kid.save();
       if (savedKid) {
