@@ -54,8 +54,6 @@ router.get("/byID/:kidIdFromFront", async function (req, res, next) {
   let error = [];
   let result = false;
 
-  console.log("test2", req.params);
-
   if (!req.params.kidIdFromFront) {
     error.push({ code: 1, label: "précisez un kidId" });
   }
@@ -93,6 +91,7 @@ router.get("/getKidsByUserId", async function (req, res, next) {
   let userMail = "";
   let adminKidList = [];
   let relatedKidList = [];
+  let kidListToReturn = [];
 
   console.log("test", req.query);
 
@@ -120,15 +119,54 @@ router.get("/getKidsByUserId", async function (req, res, next) {
         (e) => e.adminUser.id == req.query.userIdFromFront
       );
 
+      adminKidList = adminKidList.map((item, i) => {
+        console.log("liste non triée", item.customWords);
+        let sortedCustomWords = item.customWords.sort(function (a, b) {
+          return a.label - b.label;
+        });
+        console.log("liste triée ", i, sortedCustomWords);
+        let ob = {
+          kidId: item.id,
+          isRelated: false,
+          kidFirstName: item.firstName,
+          grade: item.grade,
+          activatedNotions: item.activatedNotions,
+          customWords: item.customWords.sort((a, b) => {
+            return a.label - b.label;
+          }),
+          relatedUsers: item.relatedUsers,
+          xp: item.xp,
+          consecutiveDaysNb: item.consecutiveDaysNb,
+        };
+        return ob;
+      });
+
       relatedKidList = kidList.filter((e) =>
         e.relatedUsers.find((i) => i == userMail)
       );
 
+      relatedKidList = relatedKidList.map((item, i) => {
+        let ob = {
+          kidId: item.id,
+          isRelated: true,
+          kidFirstName: item.firstName,
+          grade: item.grade,
+          activatedNotions: item.activatedNotions,
+          customWords: item.customWords.sort((a, b) => {
+            return a.label - b.label;
+          }),
+          xp: item.xp,
+          consecutiveDaysNb: item.consecutiveDaysNb,
+        };
+        return ob;
+      });
+
+      kidListToReturn = [...adminKidList, ...relatedKidList];
       result = true;
     }
   }
 
-  res.json({ result, error, adminKidList, relatedKidList });
+  res.json({ result, error, kidListToReturn });
 });
 
 // ROUTE GET ALL NOTIONS FROM BDD
@@ -166,7 +204,7 @@ router.put(
       if (!kid) {
         error.push({
           code: 4,
-          label: "il n'existe pas de kid avec l'id" + req.body.kidIdFromFront,
+          label: "il n'existe pas de kid avec l'id" + req.params.kidIdFromFront,
         });
       } else {
         let tableau = [];
@@ -236,24 +274,132 @@ router.put("/KidGrade/:kidIdFromFront", async function (req, res, next) {
   res.json({ result, error, savedKid });
 });
 
-//ROUTE GET KID BY ID
-router.get("/byId/:kidIdFromFront", async function (req, res, next) {
+// ADD KID CUSTOM WORD
+router.put(
+  "/addKidCustomWord/:kidIdFromFront",
+  async function (req, res, next) {
+    let error = [];
+    let result = false;
+    let savedKid = {};
+
+    if (!req.params.kidIdFromFront) {
+      error.push({ code: 1, label: "précisez un kidId" });
+    }
+    if (!req.body.newCustomWordFromFront) {
+      error.push({ code: 2, label: "précisez un mot à ajouter" });
+    }
+
+    if (error.length == 0) {
+      let newWord = req.body.newCustomWordFromFront;
+      let kid = await kidModel.findById(req.params.kidIdFromFront);
+
+      if (!kid) {
+        error.push({
+          code: 4,
+          label: "il n'existe pas de kid avec l'id" + req.params.kidIdFromFront,
+        });
+      } else {
+        let finalWordsList = kid.customWords;
+        finalWordsList.push({ label: newWord });
+        kid.customWords = finalWordsList;
+      }
+
+      //Mise à jour de la bdd
+      savedKid = await kid.save();
+      if (savedKid) {
+        result = true;
+      }
+    }
+
+    res.json({ result, error, savedKid });
+  }
+);
+
+// DELETE KID CUSTOM WORD
+router.delete(
+  "/deleteKidCustomWord/:kidIdFromFront",
+  async function (req, res, next) {
+    let error = [];
+    let result = false;
+    let savedKid = {};
+
+    if (!req.params.kidIdFromFront) {
+      error.push({ code: 1, label: "précisez un kidId" });
+    }
+    if (!req.body.customWordToDeleteFromFront) {
+      error.push({ code: 2, label: "précisez un mot à supprimer" });
+    }
+
+    if (error.length == 0) {
+      let wordToDelete = req.body.customWordToDeleteFromFront;
+      let kid = await kidModel.findById(req.params.kidIdFromFront);
+
+      if (!kid) {
+        error.push({
+          code: 4,
+          label: "il n'existe pas de kid avec l'id" + req.params.kidIdFromFront,
+        });
+      } else {
+        let currentWordsList = kid.customWords;
+        let finalWordsList = currentWordsList.filter(
+          (e) => e.label != wordToDelete
+        );
+        kid.customWords = finalWordsList;
+      }
+
+      //Mise à jour de la bdd
+      savedKid = await kid.save();
+      if (savedKid) {
+        result = true;
+      }
+    }
+
+    res.json({ result, error, savedKid });
+  }
+);
+
+//ROUTE PUT KID RELATED USERS
+router.put("/KidRelatedUsers/:kidIdFromFront", async function (req, res, next) {
   let error = [];
   let result = false;
+  let savedKid = {};
 
   if (!req.params.kidIdFromFront) {
     error.push({ code: 1, label: "précisez un kidId" });
   }
-
-  let kid = await kidModel.findById(req.params.kidIdFromFront);
-
-  if (!kid) {
-    error.push({ code: 2, label: "le kid n'existe pas" });
-  } else {
-    result = true;
+  if (!req.body.newKidRelatedFromFront) {
+    error.push({ code: 2, label: "précisez une liste de mails" });
   }
 
-  res.json({ result, error, kid });
+  if (error.length == 0) {
+    let kid = await kidModel
+      .findById(req.params.kidIdFromFront)
+      .populate("testedChallenges.challengeId")
+      .populate("activatedNotions.notionId")
+      .exec();
+
+    if (!kid) {
+      error.push({
+        code: 4,
+        label: "il n'existe pas de kid avec l'id" + req.body.kidIdFromFront,
+      });
+    } else {
+      console.log(
+        "liste à mettre à jour ",
+        JSON.parse(req.body.newKidRelatedFromFront)
+      );
+      kid.relatedUsers = JSON.parse(req.body.newKidRelatedFromFront);
+    }
+
+    //Mise à jour de la bdd
+    savedKid = await kid.save();
+    if (savedKid) {
+      result = true;
+      console.log(savedKid);
+    }
+  }
+
+  res.json({ result, error, savedKid });
 });
 
 module.exports = router;
