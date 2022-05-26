@@ -97,7 +97,7 @@ router.get("/getChallengeOfTheDay", async function (req, res, next) {
     if (kid.customWords.length > 0) {
       for (let word of kid.customWords) {
         availableQuestions.push({
-          questionLabel: `comment écris-tu ${word.label}?`,
+          questionLabel: `Comment écris-tu ${word.label}?`,
           wordId: word.id,
         });
       }
@@ -142,6 +142,7 @@ router.post("/resultsOfTheDay", async function (req, res) {
   }
 
   if (error.length == 0) {
+    console.log("kidId ", req.body.kidIdFromFront);
     let kid = await kidModel
       .findById(req.body.kidIdFromFront)
       .populate("testedChallenges.challengeId")
@@ -163,7 +164,7 @@ router.post("/resultsOfTheDay", async function (req, res) {
       date = date.setDate(date.getDate() - 1);
       console.log("date de veille", new Date(date));
 
-      if (kid.lastChallengeDate - date < 0) {
+      if (!kid.lastChallengeDate || kid.lastChallengeDate - date < 0) {
         kid.consecutiveDaysNb = 1;
       } else {
         if (kid.lastChallengeDate - date == 0) {
@@ -195,6 +196,7 @@ router.post("/resultsOfTheDay", async function (req, res) {
       let count = 0;
       let resultList = JSON.parse(req.body.resultListFromFront);
       for (let element of resultList) {
+        console.log("type ", typeof element.result);
         count = count + element.result;
       }
 
@@ -207,6 +209,7 @@ router.post("/resultsOfTheDay", async function (req, res) {
         xpOfTheDay.xpNb = xpOfTheDay.xpNb + count;
       } else {
         count = count + (kid.consecutiveDaysNb % 365);
+        console.log("count ", count);
         kid.xp.push({ date: newdate, xpNb: count });
       }
 
@@ -260,6 +263,7 @@ router.post("/resultsOfTheDay", async function (req, res) {
           } else {
             customWord.lastTestDate = newdate;
           }
+          console.log("customWord", customWord);
           if (customWord.testNb) {
             customWord.average =
               (customWord.average * customWord.testNb + element.result) /

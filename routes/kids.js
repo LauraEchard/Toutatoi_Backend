@@ -126,9 +126,9 @@ router.get("/getKidsByUserId", async function (req, res, next) {
         });
         console.log("liste triée ", i, sortedCustomWords);
         let ob = {
-          kidId: item.id,
+          id: item.id,
           isRelated: false,
-          kidFirstName: item.firstName,
+          firstName: item.firstName,
           grade: item.grade,
           activatedNotions: item.activatedNotions,
           customWords: item.customWords.sort((a, b) => {
@@ -153,9 +153,9 @@ router.get("/getKidsByUserId", async function (req, res, next) {
 
       relatedKidList = relatedKidList.map((item, i) => {
         let ob = {
-          kidId: item.id,
+          id: item.id,
           isRelated: true,
-          kidFirstName: item.firstName,
+          firstName: item.firstName,
           grade: item.grade,
           activatedNotions: item.activatedNotions,
           customWords: item.customWords.sort((a, b) => {
