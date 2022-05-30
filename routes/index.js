@@ -143,6 +143,7 @@ router.post("/resultsOfTheDay", async function (req, res) {
 
   if (error.length == 0) {
     console.log("kidId ", req.body.kidIdFromFront);
+    console.log("challengeID ", req.body.challengeIdFromFront);
     let kid = await kidModel
       .findById(req.body.kidIdFromFront)
       .populate("testedChallenges.challengeId")
@@ -179,9 +180,20 @@ router.post("/resultsOfTheDay", async function (req, res) {
       kid.lastChallengeDate = newdate;
 
       //3.Mise à jour de la prop kid.testedChallenges
-      kid.testedChallenges = kid.testedChallenges.filter(
-        (e) => e.challengeId.id != req.body.challengeIdFromFront
-      );
+      if (kid.testedChallenges.length > 0) {
+        for (let i = 0; i < kid.testedChallenges.length; i++) {
+          console.log(
+            "kid.testedChallenges[0].id",
+            i,
+            "",
+            kid.testedChallenges[i]
+          );
+        }
+
+        kid.testedChallenges = kid.testedChallenges.filter(
+          (e) => e.challengeId.id != req.body.challengeIdFromFront
+        );
+      }
       kid.testedChallenges.push({
         challengeId: req.body.challengeIdFromFront,
         lastTestDate: newdate,
@@ -236,16 +248,17 @@ router.post("/resultsOfTheDay", async function (req, res) {
             });
           } else {
             activatedNotion.lastTestDate = newdate;
-          }
-          if (activatedNotion.testNb) {
-            activatedNotion.average =
-              (activatedNotion.average * activatedNotion.testNb +
-                element.result) /
-              (activatedNotion.testNb + 1);
-            activatedNotion.testNb++;
-          } else {
-            activatedNotion.average = element.result;
-            activatedNotion.testNb = 1;
+
+            if (activatedNotion.testNb) {
+              activatedNotion.average =
+                (activatedNotion.average * activatedNotion.testNb +
+                  element.result) /
+                (activatedNotion.testNb + 1);
+              activatedNotion.testNb++;
+            } else {
+              activatedNotion.average = element.result;
+              activatedNotion.testNb = 1;
+            }
           }
         }
 

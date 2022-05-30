@@ -109,12 +109,17 @@ router.get("/getKidsByUserId", async function (req, res, next) {
   if (error.length == 0) {
     var kidList = await kidModel.find().populate("adminUser").exec();
 
-    if (!kidList) {
+    if (kidList.length == 0) {
       error.push({
         code: 3,
         label: "il n'existe pas de profils enfant dans la BDD",
       });
     } else {
+      console.log("la list ", kidList[2].adminUser.id);
+      for (let element of kidList) {
+        console.log("totu", element.adminUser.id, "  ", element.firstName);
+      }
+
       adminKidList = kidList.filter(
         (e) => e.adminUser.id == req.query.userIdFromFront
       );
