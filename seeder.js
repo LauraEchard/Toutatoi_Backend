@@ -1,3 +1,7 @@
+// Pour lancer le script
+// CAS 1 : pour un import --> node seeder.js -import
+// CAS 2 : pour un clean de la BDD --> node seeder.js -delete
+
 const fs = require("fs");
 const mongoose = require("mongoose");
 

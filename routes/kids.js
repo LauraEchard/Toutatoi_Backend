@@ -30,6 +30,7 @@ router.post("/addKid", async function (req, res, next) {
     error.push({ code: 3, label: "précisez le niveau scolaire de l'enfant" });
   }
   if (error.length == 0) {
+    //informations additionnelles facultatives (utile notamment pour les tests)
     if (req.body.additionalInfos) {
       kidInfos = JSON.parse(req.body.additionalInfos);
     }
@@ -50,39 +51,24 @@ router.post("/addKid", async function (req, res, next) {
 });
 
 //GET KID BY ID
-router.get("/byID/:kidIdFromFront", async function (req, res, next) {
-  let error = [];
-  let result = false;
+// router.get("/byID/:kidIdFromFront", async function (req, res, next) {
+//   let error = [];
+//   let result = false;
 
-  if (!req.params.kidIdFromFront) {
-    error.push({ code: 1, label: "précisez un kidId" });
-  }
+//   if (!req.params.kidIdFromFront) {
+//     error.push({ code: 1, label: "précisez un kidId" });
+//   }
 
-  let kid = await kidModel.findById(req.params.kidIdFromFront);
+//   let kid = await kidModel.findById(req.params.kidIdFromFront);
 
-  if (!kid) {
-    error.push({ code: 2, label: "le kid n'existe pas" });
-  } else {
-    result = true;
-  }
+//   if (!kid) {
+//     error.push({ code: 2, label: "le kid n'existe pas" });
+//   } else {
+//     result = true;
+//   }
 
-  res.json({ result, error, kid });
-});
-
-//SUPPRESSION KID
-router.delete("/deleteKid/:kidIdFromFront", async function (req, res, next) {
-  let error = [];
-  let result = false;
-  if (!req.params.kidIdFromFront) {
-    push.error({ code: 1, label: "précisez un id" });
-  } else {
-    const data = await kidModel.deleteOne({ id: req.params.kidIdFromFront });
-    if (data) {
-      result = true;
-    }
-  }
-  res.json({ result, error });
-});
+//   res.json({ result, error, kid });
+// });
 
 //GET KIDS BY USER ID
 router.get("/getKidsByUserId", async function (req, res, next) {
@@ -112,30 +98,23 @@ router.get("/getKidsByUserId", async function (req, res, next) {
     if (kidList.length == 0) {
       error.push({
         code: 3,
-        label: "il n'existe pas de profils enfant dans la BDD",
+        label: "il n'existe pas de profil enfant dans la BDD",
       });
     } else {
-      console.log("la list ", kidList[2].adminUser.id);
-      for (let element of kidList) {
-        console.log("totu", element.adminUser.id, "  ", element.firstName);
-      }
-
+      //étape 1 : on récupère la liste des kids dont le user est l'admin
       adminKidList = kidList.filter(
         (e) => e.adminUser.id == req.query.userIdFromFront
       );
 
       adminKidList = adminKidList.map((item, i) => {
-        console.log("liste non triée", item.customWords);
-        let sortedCustomWords = item.customWords.sort(function (a, b) {
-          return a.label - b.label;
-        });
-        console.log("liste triée ", i, sortedCustomWords);
+        //On ne retourne au front que les données qu'il exploite, les autres servant à la mécanique de conception des défis personnalisés (côté Backend)
         let ob = {
           id: item.id,
           isRelated: false,
           firstName: item.firstName,
           grade: item.grade,
           activatedNotions: item.activatedNotions,
+          //On pourra décaler ce sort au moment où on stocke les infos en BDD car l'action ne serait faite qu'une fois et non à chaque fois qu'on fait un get kid
           customWords: item.customWords.sort((a, b) => {
             if (a.label.toLowerCase() < b.label.toLowerCase()) {
               return -1;
@@ -152,6 +131,7 @@ router.get("/getKidsByUserId", async function (req, res, next) {
         return ob;
       });
 
+      //étape 2 : on récupère la liste des kids dont le user est related
       relatedKidList = kidList.filter((e) =>
         e.relatedUsers.find((i) => i == userMail)
       );
@@ -186,13 +166,6 @@ router.get("/getKidsByUserId", async function (req, res, next) {
   res.json({ result, error, kidListToReturn });
 });
 
-// ROUTE GET ALL NOTIONS FROM BDD
-router.get("/getAllNotionsFromBdd", async function (req, res, next) {
-  let allNotions = await notionModel.find();
-
-  res.json({ allNotions });
-});
-
 //ROUTE PUT KID ACTIVATED NOTIONS
 router.put(
   "/kidActivatedNotions/:kidIdFromFront",
@@ -207,8 +180,6 @@ router.put(
     if (!req.body.newActivatedNotionsFromFront) {
       error.push({ code: 2, label: "précisez une liste de notion" });
     }
-
-    let finalNotions = [];
 
     if (error.length == 0) {
       let newNotionsList = JSON.parse(req.body.newActivatedNotionsFromFront);
@@ -251,7 +222,7 @@ router.put(
 );
 
 //ROUTE PUT KID GRADE
-router.put("/KidGrade/:kidIdFromFront", async function (req, res, next) {
+router.put("/kidGrade/:kidIdFromFront", async function (req, res, next) {
   let error = [];
   let result = false;
   let savedKid = {};
@@ -263,14 +234,8 @@ router.put("/KidGrade/:kidIdFromFront", async function (req, res, next) {
     error.push({ code: 2, label: "précisez une classe pour l'enfant" });
   }
 
-  let finalNotions = [];
-
   if (error.length == 0) {
-    let kid = await kidModel
-      .findById(req.params.kidIdFromFront)
-      .populate("testedChallenges.challengeId")
-      .populate("activatedNotions.notionId")
-      .exec();
+    let kid = await kidModel.findById(req.params.kidIdFromFront).exec();
 
     if (!kid) {
       error.push({
@@ -376,7 +341,7 @@ router.delete(
 );
 
 //ROUTE PUT KID RELATED USERS
-router.put("/KidRelatedUsers/:kidIdFromFront", async function (req, res, next) {
+router.put("/kidRelatedUsers/:kidIdFromFront", async function (req, res, next) {
   let error = [];
   let result = false;
   let savedKid = {};
@@ -389,11 +354,7 @@ router.put("/KidRelatedUsers/:kidIdFromFront", async function (req, res, next) {
   }
 
   if (error.length == 0) {
-    let kid = await kidModel
-      .findById(req.params.kidIdFromFront)
-      .populate("testedChallenges.challengeId")
-      .populate("activatedNotions.notionId")
-      .exec();
+    let kid = await kidModel.findById(req.params.kidIdFromFront).exec();
 
     if (!kid) {
       error.push({
@@ -418,5 +379,20 @@ router.put("/KidRelatedUsers/:kidIdFromFront", async function (req, res, next) {
 
   res.json({ result, error, savedKid });
 });
+
+//SUPPRESSION KID - A REVOIR - QUI PEUT SUPPRIMER, QUID DES KIDS DONT ON EST RELATED ....
+// router.delete("/deleteKid/:kidIdFromFront", async function (req, res, next) {
+//   let error = [];
+//   let result = false;
+//   if (!req.params.kidIdFromFront) {
+//     push.error({ code: 1, label: "précisez un id" });
+//   } else {
+//     const data = await kidModel.deleteOne({ id: req.params.kidIdFromFront });
+//     if (data) {
+//       result = true;
+//     }
+//   }
+//   res.json({ result, error });
+// });
 
 module.exports = router;

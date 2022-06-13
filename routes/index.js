@@ -1,5 +1,6 @@
 var express = require("express");
 var router = express.Router();
+var uniqid = require("uniqid");
 
 //IMPORT DE TOUS LES FICHIERS MODELS
 var userModel = require("../models/users");
@@ -7,13 +8,12 @@ var kidModel = require("../models/kids");
 var notionModel = require("../models/notions");
 var challengeModel = require("../models/challenges");
 var questionModel = require("../models/questions");
-const x = require("uniqid");
-const questions = require("../models/questions");
 
-/* GET home page. */
-router.get("/", function (req, res, next) {
-  console.log();
-  res.render("index", { title: "Express" });
+// ROUTE GET ALL NOTIONS FROM BDD
+router.get("/getAllNotionsFromBdd", async function (req, res, next) {
+  let allNotions = await notionModel.find();
+
+  res.json({ allNotions });
 });
 
 //ROUTE GET CHALLENGE OF THE DAY
@@ -201,7 +201,7 @@ router.post("/resultsOfTheDay", async function (req, res) {
 
       //4.Mise à jour de la prop kid.xp
       let datemin = new Date();
-      datemin = datemin.setDate(datemin.getDate() - 90);
+      datemin = datemin.setDate(datemin.getDate() - 45);
 
       kid.xp = kid.xp.filter((e) => e.date - datemin >= 0);
 
