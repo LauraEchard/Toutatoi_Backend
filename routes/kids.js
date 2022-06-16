@@ -38,6 +38,10 @@ router.post("/addKid", async function (req, res, next) {
     kidInfos.adminUser = req.body.userIdFromFront;
     kidInfos.grade = req.body.gradeFromFront;
     kidInfos.firstName = req.body.firstNameFromFront;
+    //Pour l'affichage des stats, on initialise le nb de jours consécutifs à 0
+    if (!kidInfos.consecutiveDaysNb) {
+      kidInfos.consecutiveDaysNb = 0;
+    }
 
     var newKid = new kidModel(kidInfos);
     let saveKid = await newKid.save();

@@ -93,7 +93,7 @@ router.get("/getChallengeOfTheDay", async function (req, res, next) {
       availableQuestions.push(finalChallengeQuestions[i]);
     }
 
-    //Etape 3 : ajout des éventuels questions de vocabulaire
+    //Etape 3 : ajout des éventuelles questions de vocabulaire
     if (kid.customWords.length > 0) {
       for (let word of kid.customWords) {
         availableQuestions.push({
@@ -142,8 +142,6 @@ router.post("/resultsOfTheDay", async function (req, res) {
   }
 
   if (error.length == 0) {
-    console.log("kidId ", req.body.kidIdFromFront);
-    console.log("challengeID ", req.body.challengeIdFromFront);
     let kid = await kidModel
       .findById(req.body.kidIdFromFront)
       .populate("testedChallenges.challengeId")
@@ -264,6 +262,7 @@ router.post("/resultsOfTheDay", async function (req, res) {
 
         //On est dans le cas d'un customWord
         else {
+          //On récupère l'id en supprimant le préfixe "_" ayant permis d'identifier qu'il s'agit d'un customWord
           let wordId = element.questionId.slice(1);
           console.log("wordId ", wordId);
           let customWord = kid.customWords.find((e) => e.id == wordId);

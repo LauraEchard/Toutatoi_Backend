@@ -1,6 +1,6 @@
 var mongoose = require("mongoose");
 
-//SOUS-DOCUMENTS PR
+//SOUS-DOCUMENTS
 var wordSchema = mongoose.Schema({
   label: String,
   lastTestDate: Date,
