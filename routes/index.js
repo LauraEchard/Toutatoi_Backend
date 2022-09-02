@@ -12,6 +12,7 @@ var questionModel = require("../models/questions");
 // ROUTE GET ALL NOTIONS FROM BDD
 router.get("/getAllNotionsFromBdd", async function (req, res, next) {
   let allNotions = await notionModel.find();
+  console.log("test");
 
   res.json({ allNotions });
 });
